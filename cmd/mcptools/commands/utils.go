@@ -116,26 +116,24 @@ var CreateClientFunc = func(args []string, _ ...client.ClientOption) (*client.Cl
 			return nil, fmt.Errorf("failed to parse authentication: %w", authErr)
 		}
 
-		// Create headers map if authentication is provided
+		// Create headers map with required Accept header for MCP protocol
 		headers := make(map[string]string)
+
+		// Add authentication header if provided
 		if authHeader != "" {
 			headers["Authorization"] = authHeader
 		}
 
+		// Add Accept header required by MCP streamable HTTP and SSE transports
+		// Many MCP servers require clients to accept both JSON responses and event streams
+		headers["Accept"] = "application/json, text/event-stream"
+
 		if TransportOption == "sse" {
 			// For SSE transport, use transport.ClientOption
-			if len(headers) > 0 {
-				c, err = client.NewSSEMCPClient(cleanURL, transport.WithHeaders(headers))
-			} else {
-				c, err = client.NewSSEMCPClient(cleanURL)
-			}
+			c, err = client.NewSSEMCPClient(cleanURL, transport.WithHeaders(headers))
 		} else {
 			// For StreamableHTTP transport, use transport.StreamableHTTPCOption
-			if len(headers) > 0 {
-				c, err = client.NewStreamableHttpClient(cleanURL, transport.WithHTTPHeaders(headers))
-			} else {
-				c, err = client.NewStreamableHttpClient(cleanURL)
-			}
+			c, err = client.NewStreamableHttpClient(cleanURL, transport.WithHTTPHeaders(headers))
 		}
 
 		if err != nil {
