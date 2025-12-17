@@ -55,6 +55,7 @@ func (m *MockTransport) Close() error {
 }
 
 // GetSessionId returns an empty session ID for the mock transport.
+// nolint:revive // Method name required by transport.Interface from mcp-go
 func (m *MockTransport) GetSessionId() string {
 	return ""
 }
