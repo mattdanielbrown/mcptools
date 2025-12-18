@@ -11,12 +11,7 @@ import (
 )
 
 // Constants for template options.
-const (
-	sdkTypeScript  = "ts"
-	transportStdio = "stdio"
-	transportSSE   = "sse"
-	transportHTTP  = "http"
-)
+const sdkTypeScript = "ts"
 
 // NewCmd returns a new 'new' command for scaffolding MCP projects.
 func NewCmd() *cobra.Command {
@@ -49,13 +44,13 @@ Examples:
 			}
 
 			// Validate transport flag
-			if transportFlag != "" && transportFlag != transportStdio && transportFlag != transportSSE && transportFlag != transportHTTP {
+			if transportFlag != "" && transportFlag != TransportStdio && transportFlag != TransportSSE && transportFlag != TransportHTTP {
 				return fmt.Errorf("unsupported transport: %s (supported options: stdio, sse, http)", transportFlag)
 			}
 
 			// Set default transport if not specified
 			if transportFlag == "" {
-				transportFlag = transportStdio
+				transportFlag = TransportStdio
 			}
 
 			// Parse components from args
@@ -127,11 +122,12 @@ func createProjectStructure(components map[string]string, sdk, transport string)
 
 	// Create index.ts with the server setup
 	var serverTemplateFile string
-	if transport == transportSSE {
+	switch transport {
+	case TransportSSE:
 		serverTemplateFile = filepath.Join(templatesDir, "server_sse.ts")
-	} else if transport == transportHTTP {
+	case TransportHTTP:
 		serverTemplateFile = filepath.Join(templatesDir, "server_http.ts")
-	} else {
+	default:
 		// Use stdio by default
 		serverTemplateFile = filepath.Join(templatesDir, "server_stdio.ts")
 	}

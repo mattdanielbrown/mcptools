@@ -33,56 +33,55 @@ func IsHTTP(str string) bool {
 // It returns the header value and a cleaned URL (with embedded credentials removed).
 func buildAuthHeader(originalURL string) (string, string, error) {
 	cleanURL := originalURL
-	
+
 	// First, check if we have explicit auth-user flag with username:password format
 	if AuthUser != "" {
 		// Parse username:password format
 		if !strings.Contains(AuthUser, ":") {
 			return "", originalURL, fmt.Errorf("auth-user must be in username:password format (missing colon)")
 		}
-		
+
 		parts := strings.SplitN(AuthUser, ":", 2)
 		username := parts[0]
 		password := parts[1]
-		
+
 		// Allow empty username or password, but not both
-		if username == "" && password == "" {
-			// Both empty, treat as no auth
-		} else {
+		if username != "" || password != "" {
 			// Create basic auth header
 			auth := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
 			header := "Basic " + auth
 			return header, cleanURL, nil
 		}
+		// Both empty, treat as no auth - fall through
 	}
-	
+
 	// Check for custom auth header
 	if AuthHeader != "" {
 		return AuthHeader, cleanURL, nil
 	}
-	
+
 	// Extract credentials from URL if embedded
 	parsedURL, err := url.Parse(originalURL)
 	if err != nil {
 		return "", originalURL, err
 	}
-	
+
 	if parsedURL.User != nil {
 		username := parsedURL.User.Username()
 		password, _ := parsedURL.User.Password()
-		
+
 		if username != "" {
 			// Create basic auth header
 			auth := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
-			
+
 			// Clean the URL by removing user info
 			parsedURL.User = nil
 			cleanURL = parsedURL.String()
-			
+
 			return "Basic " + auth, cleanURL, nil
 		}
 	}
-	
+
 	return "", cleanURL, nil
 }
 
@@ -106,7 +105,7 @@ var CreateClientFunc = func(args []string, _ ...client.ClientOption) (*client.Cl
 
 	if len(args) == 1 && IsHTTP(args[0]) {
 		// Validate transport option for HTTP URLs
-		if TransportOption != "http" && TransportOption != "sse" {
+		if TransportOption != TransportHTTP && TransportOption != TransportSSE {
 			return nil, fmt.Errorf("invalid transport option: %s (supported: http, sse)", TransportOption)
 		}
 
@@ -128,7 +127,7 @@ var CreateClientFunc = func(args []string, _ ...client.ClientOption) (*client.Cl
 		// Many MCP servers require clients to accept both JSON responses and event streams
 		headers["Accept"] = "application/json, text/event-stream"
 
-		if TransportOption == "sse" {
+		if TransportOption == TransportSSE {
 			// For SSE transport, use transport.ClientOption
 			c, err = client.NewSSEMCPClient(cleanURL, transport.WithHeaders(headers))
 		} else {

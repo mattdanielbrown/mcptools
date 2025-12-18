@@ -9,16 +9,16 @@ import (
 
 // flags.
 const (
-	FlagFormat         = "--format"
-	FlagFormatShort    = "-f"
-	FlagParams         = "--params"
-	FlagParamsShort    = "-p"
-	FlagHelp           = "--help"
-	FlagHelpShort      = "-h"
-	FlagServerLogs     = "--server-logs"
-	FlagTransport      = "--transport"
-	FlagAuthUser       = "--auth-user"
-	FlagAuthHeader     = "--auth-header"
+	FlagFormat      = "--format"
+	FlagFormatShort = "-f"
+	FlagParams      = "--params"
+	FlagParamsShort = "-p"
+	FlagHelp        = "--help"
+	FlagHelpShort   = "-h"
+	FlagServerLogs  = "--server-logs"
+	FlagTransport   = "--transport"
+	FlagAuthUser    = "--auth-user"
+	FlagAuthHeader  = "--auth-header"
 )
 
 // entity types.
@@ -26,6 +26,13 @@ const (
 	EntityTypeTool   = "tool"
 	EntityTypePrompt = "prompt"
 	EntityTypeRes    = "resource"
+)
+
+// transport types.
+const (
+	TransportSSE   = "sse"
+	TransportHTTP  = "http"
+	TransportStdio = "stdio"
 )
 
 var (

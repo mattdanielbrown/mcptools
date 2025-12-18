@@ -11,6 +11,46 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// parseCallArgs parses command line arguments for the call command.
+// Returns entityName, parsedArgs for the command to execute.
+func parseCallArgs(cmdArgs []string) (string, []string) {
+	parsedArgs := []string{}
+	entityName := ""
+	i := 0
+	entityExtracted := false
+
+	for i < len(cmdArgs) {
+		switch {
+		case (cmdArgs[i] == FlagFormat || cmdArgs[i] == FlagFormatShort) && i+1 < len(cmdArgs):
+			FormatOption = cmdArgs[i+1]
+			i += 2
+		case (cmdArgs[i] == FlagParams || cmdArgs[i] == FlagParamsShort) && i+1 < len(cmdArgs):
+			ParamsString = cmdArgs[i+1]
+			i += 2
+		case (cmdArgs[i] == FlagTransport) && i+1 < len(cmdArgs):
+			TransportOption = cmdArgs[i+1]
+			i += 2
+		case (cmdArgs[i] == FlagAuthUser) && i+1 < len(cmdArgs):
+			AuthUser = cmdArgs[i+1]
+			i += 2
+		case (cmdArgs[i] == FlagAuthHeader) && i+1 < len(cmdArgs):
+			AuthHeader = cmdArgs[i+1]
+			i += 2
+		case !entityExtracted:
+			entityName = cmdArgs[i]
+			entityExtracted = true
+			i++
+		case cmdArgs[i] == FlagServerLogs:
+			ShowServerLogs = true
+			i++
+		default:
+			parsedArgs = append(parsedArgs, cmdArgs[i])
+			i++
+		}
+	}
+	return entityName, parsedArgs
+}
+
 // CallCmd creates the call command.
 func CallCmd() *cobra.Command {
 	return &cobra.Command{
@@ -33,42 +73,7 @@ func CallCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			cmdArgs := args
-			parsedArgs := []string{}
-			entityName := ""
-
-			i := 0
-			entityExtracted := false
-
-			for i < len(cmdArgs) {
-				switch {
-				case (cmdArgs[i] == FlagFormat || cmdArgs[i] == FlagFormatShort) && i+1 < len(cmdArgs):
-					FormatOption = cmdArgs[i+1]
-					i += 2
-				case (cmdArgs[i] == FlagParams || cmdArgs[i] == FlagParamsShort) && i+1 < len(cmdArgs):
-					ParamsString = cmdArgs[i+1]
-					i += 2
-				case (cmdArgs[i] == FlagTransport) && i+1 < len(cmdArgs):
-					TransportOption = cmdArgs[i+1]
-					i += 2
-				case (cmdArgs[i] == FlagAuthUser) && i+1 < len(cmdArgs):
-					AuthUser = cmdArgs[i+1]
-					i += 2
-				case (cmdArgs[i] == FlagAuthHeader) && i+1 < len(cmdArgs):
-					AuthHeader = cmdArgs[i+1]
-					i += 2
-				case !entityExtracted:
-					entityName = cmdArgs[i]
-					entityExtracted = true
-					i++
-				case cmdArgs[i] == FlagServerLogs:
-					ShowServerLogs = true
-					i++
-				default:
-					parsedArgs = append(parsedArgs, cmdArgs[i])
-					i++
-				}
-			}
+			entityName, parsedArgs := parseCallArgs(args)
 
 			if entityName == "" {
 				fmt.Fprintln(os.Stderr, "Error: entity name is required")
